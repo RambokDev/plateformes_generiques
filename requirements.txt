@@ -1,0 +1,11 @@
+pyserial~=3.5
+bluepy
+sphinx-rtd-theme
+sphinx
+PyQt5~=5.14.1
+numpy~=1.24.4
+opencv-python~=4.8.1.78
+pypylon~=2.3.0
+Pillow~=7.0.0
+minimalmodbus~=2.1.1
+imutils
