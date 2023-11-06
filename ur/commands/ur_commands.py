@@ -46,6 +46,8 @@ CONFLICTING_CONTROLLERS = ["joint_group_vel_controller", "twist_controller"]
 # rosrun raiv_libraries robotUR.py
 
 class RobotUR(object):
+    tool_horizontal_pose_camera = geometry_msgs.Quaternion(0.5, -0.5, -0.5, 0.5)
+    # tool_horizontal_pose_camera = geometry_msgs.Quaternion(-0.7, -0.027, -0.7, -0.024)
     tool_down_pose = geometry_msgs.Quaternion(1., 0., 0., 0.)  # The tool is down, ready to grasp an object
     tool_horizontal_pose = geometry_msgs.Quaternion(0.5, 0.5, 0.5,
                                                     0.5)  # Pose with the ArUco code up and the tool in horizontal position
