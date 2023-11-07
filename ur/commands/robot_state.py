@@ -12,6 +12,7 @@ def set_robot_state(state: bool):
     Example : False     in order to power_off the robot controller
     @param: state       a Boolean
     """
+    print(state)
     if state:
         robot_state_str = 'brake_release'
     elif not state:
@@ -30,6 +31,6 @@ def set_robot_state(state: bool):
 if __name__ == '__main__':
     print("this is a file for testing the robot connexion ")
 
-    success, message = set_robot_state(state=True)
+    success, message = set_robot_state(state=False)
     print("success: " + str(success))
     print("message: " + str(message))

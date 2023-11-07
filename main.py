@@ -3,6 +3,7 @@ import time
 import cv2
 import numpy as np
 from PyQt5 import QtWidgets, uic
+from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox
 import sys
 import rospy
 from PyQt5.QtGui import QPixmap, QImage
@@ -14,6 +15,7 @@ from numpy import size
 import geometry_msgs.msg as geometry_msgs
 from ur.commands.ur_commands import RobotUR
 from sensor_loop import sensor_loop
+from ur.commands.robot_state import set_robot_state
 
 x_coef = 1 - 0.0182
 x_offset = (-0.0658) / 10  # en cm
@@ -41,12 +43,31 @@ class Ui(QtWidgets.QMainWindow, ):
         self.take_image_angle.clicked.connect(self.show_image_angle)
         self.angle_state.clicked.connect(self.move_wrist_angle)
         self.go_to_box.clicked.connect(self.go_to_box_traj)
+        self.stop_robot.clicked.connect(lambda: self.robot_activation(False))
+        self.brakes.clicked.connect(lambda: self.robot_activation(True))
         self.quit_button.clicked.connect(QApplication.instance().quit)
         self.showMaximized()
         self.filename = None
         self.sensor_contact = None
         # self.slider_angle.valueChanged.connect(self.slider_state)
         self.show()
+
+    def pop_up_screen(self, message):
+
+        # Create a QMessageBox instance for the pop-up
+        message_box = QMessageBox()
+        message_box.setIcon(QMessageBox.Critical)  # Set the icon (other options: Critical, Warning)
+        message_box.setWindowTitle("Error Message")
+        message_box.setText("{}".format(message))
+        message_box.setStandardButtons(QMessageBox.Ok)  # Set the available buttons (Ok button in this case)
+        # Show the pop-up
+        message_box.exec_()
+
+    def robot_activation(self, state):
+        print(state)
+        success, message = set_robot_state(state)
+        if not success:
+            self.pop_up_screen(message)
 
     def camera_basler(self, type_camera):
         """
