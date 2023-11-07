@@ -30,6 +30,8 @@ class Ui(QtWidgets.QMainWindow, ):
         super(Ui, self).__init__()
         self.imageDeBase = None
         uic.loadUi(f'{os.getcwd()}/ur/ihm_tests/ui/main.ui', self)
+        rospy.init_node("test_robotUR")
+        self.myRobot = RobotUR()
         self.PIN_CAM_DEVRACAGE = 5
         self.PIN_VENTURI_VIDE = 0
         self.PIN_CAM_ORIENTATION = 4
@@ -37,10 +39,13 @@ class Ui(QtWidgets.QMainWindow, ):
         self.set_io_interface = rospy.ServiceProxy('/ur_hardware_interface/set_io', SetIO)
         self.take_image.clicked.connect(self.show_image)
         self.take_image_angle.clicked.connect(self.show_image_angle)
+        self.angle_state.clicked.connect(self.slider_state)
+        self.go_to_box.clicked.connect(self.go_to_box_traj)
         self.quit_button.clicked.connect(QApplication.instance().quit)
         self.showMaximized()
         self.filename = None
         self.sensor_contact = None
+        # self.slider_angle.valueChanged.connect(self.slider_state)
         self.show()
 
     def camera_basler(self, type_camera):
@@ -108,7 +113,7 @@ class Ui(QtWidgets.QMainWindow, ):
             self.set_io_interface(1, self.PIN_CAM_ORIENTATION, self.OFF)
             time.sleep(0.5)
 
-    def show_image_angle(self, ):
+    def show_image_angle(self):
         print("show_image_angle")
         print("=====Display image Angle =====")
         img_name_angle = self.camera_basler(0)
@@ -125,9 +130,36 @@ class Ui(QtWidgets.QMainWindow, ):
         step = channels * width
         qImg = QImage(image.data, width, height, step, QImage.Format_RGB888)
         self.image_angle.setPixmap(QPixmap.fromImage(qImg))
+        # self.compute_angle()
 
-        print("myslider",self.slider_angle.value())
+    def slider_state(self):
 
+        print("myslider", self.slider_angle.value())
+
+        wrist_angle = self.slider_angle.value()
+        pose_camera = [-61.86, -48.79, 65.73, -198.09, -32.20, wrist_angle]
+        # self.myRobot.activate_controller_joint()
+        self.myRobot.switch_controler_robot("pos_joint_traj_controller")
+        # self.myRobot._switch_controller("pos_joint_traj_controller")
+        self.myRobot.send_joint_trajectory(self.myRobot.convert_deg_to_rad(pose_camera))
+        # self.myRobot.go_to_joint_state(self.myRobot.convert_deg_to_rad(pose_camera))
+
+    def go_to_box_traj(self):
+        print("go to box")
+        vector = [0, 0, -0.380]
+        print("Current pose : {}".format(self.myRobot.get_current_pose()))
+        current_pose_orientation = self.myRobot.get_current_pose().orientation
+        camera_command = [-0.883, 0.775, 0.214]
+        current_quaternions = geometry_msgs.Quaternion(current_pose_orientation.x, current_pose_orientation.y, current_pose_orientation.z, current_pose_orientation.w)
+
+        self.myRobot.switch_controler_robot("pose_based_cartesian_traj_controller")
+
+        self.myRobot.go_to_pose(geometry_msgs.Pose(
+            geometry_msgs.Vector3(camera_command[0], camera_command[1], camera_command[2]),
+            current_quaternions
+        ))
+        # self.myRobot.relative_move(vector[0], vector[1], vector[2])
+        self.set_io_interface(1, self.PIN_VENTURI_VIDE, self.OFF)
 
     def compute_ratio(self, camera_type):
         if camera_type == 0:
@@ -148,7 +180,7 @@ class Ui(QtWidgets.QMainWindow, ):
     def getPos(self, event):
         x = event.pos().x()
         y = event.pos().y()
-        ratio, width, height = self.compute_ratio()
+        ratio, width, height = self.compute_ratio(1)
         print(ratio)
         print("coordinates in IHM picture: ", x, y)
         realX = round(x / ratio)
@@ -163,35 +195,31 @@ class Ui(QtWidgets.QMainWindow, ):
         self.go_to_position(robot_command, vector)
 
     def go_to_position(self, robot_command, vector):
-        rospy.init_node("test_robotUR")
+        # rospy.init_node("test_robotUR")
         print(robot_command, vector)
         self.sensor_contact = sensor_loop()
-        myRobot = RobotUR()
+        self.myRobot.go_to_initial_position(5)
+        # self.go_to_camera()
+        self.myRobot.go_to_pose(geometry_msgs.Pose(
+            geometry_msgs.Vector3(robot_command[0], robot_command[1], robot_command[2]),
+            RobotUR.tool_down_pose
+        ))
+        print(self.sensor_contact)
+        if self.sensor_contact != 1:
+            self.set_io_interface(1, self.PIN_VENTURI_VIDE, self.ON)
+            self.myRobot.relative_move(vector[0], vector[1], vector[2])
+            self.go_to_camera()
 
-        myRobot.go_to_initial_position(5)
-
-        self.go_to_camera(myRobot)
-
-        # myRobot.go_to_pose(geometry_msgs.Pose(
-        #     geometry_msgs.Vector3(robot_command[0], robot_command[1], robot_command[2]),
-        #     RobotUR.tool_down_pose
-        # ))
-        # print(self.sensor_contact)
-        # if self.sensor_contact != 1:
-        #     self.set_io_interface(1, self.PIN_VENTURI_VIDE, self.ON)
-        #     myRobot.relative_move(vector[0], vector[1], vector[2])
-        #     # self.go_to_camera(myRobot)
-
-    def go_to_camera(self, myRobot):
+    def go_to_camera(self):
         print("go_to_camera")
 
         camera_command = [-0.883, 0.775, 0.594]
-        myRobot.go_to_pose(geometry_msgs.Pose(
+        self.myRobot.go_to_pose(geometry_msgs.Pose(
             geometry_msgs.Vector3(camera_command[0], camera_command[1], camera_command[2]),
             RobotUR.tool_horizontal_pose_camera
         ))
 
-        self.show_image_angle()
+        # self.show_image_angle()
 
     def mise_en_forme_commande_vecteur(self, pos_0, vect):
         vecteur = [vect[0][0] * 0.01, vect[1][0] * 0.01, vect[2][0] * 0.01]

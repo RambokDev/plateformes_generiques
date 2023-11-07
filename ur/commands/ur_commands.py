@@ -2,6 +2,8 @@
 
 
 import sys
+from math import pi
+
 import rospy
 import actionlib
 from rosservice import rosservice_find
@@ -13,13 +15,20 @@ from cartesian_control_msgs.msg import (
     FollowCartesianTrajectoryGoal,
     CartesianTrajectoryPoint,
 )
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from control_msgs.msg import FollowJointTrajectoryAction, FollowJointTrajectoryGoal
+from actionlib import SimpleActionClient
+
+# from control_msgs.msg import FollowJointTrajectoryAction
+# from control_msgs.msg import FollowJointTrajectoryGoal
+
 from tf2_msgs.msg import TFMessage
 
 # All of those controllers can be used to execute joint-based trajectories.
 # The scaled versions should be preferred over the non-scaled versions.
 JOINT_TRAJECTORY_CONTROLLERS = [
     "scaled_pos_joint_traj_controller",
-    "scaled_vel_joint_traj_co ntroller",
+    "scaled_vel_joint_traj_controller",
     "pos_joint_traj_controller",
     "vel_joint_traj_controller",
     "forward_joint_traj_controller",
@@ -53,7 +62,9 @@ class RobotUR(object):
                                                     0.5)  # Pose with the ArUco code up and the tool in horizontal position
     cartesian_controller = "pose_based_cartesian_traj_controller/follow_cartesian_trajectory"
 
-    def __init__(self, initial_pose=geometry_msgs.Pose(geometry_msgs.Vector3(-0.731, 0.356, -0.042), tool_down_pose)):
+    # joint_controller = "pose_based_joint_traj_controller/follow_joint_trajectory"
+    # Vector3(-0.731, 0.356, -0.042)
+    def __init__(self, initial_pose=geometry_msgs.Pose(geometry_msgs.Vector3(-0.731, 0.356, 0.357), tool_down_pose)):
         super(RobotUR, self).__init__()
         timeout = rospy.Duration(5)
         self.switch_srv = rospy.ServiceProxy("/controller_manager/switch_controller", SwitchController)
@@ -68,6 +79,9 @@ class RobotUR(object):
         # make sure the correct controller is loaded and activated
         self.trajectory_client = actionlib.SimpleActionClient(RobotUR.cartesian_controller,
                                                               FollowCartesianTrajectoryAction)
+        #
+        # self.trajectory_client_joint = actionlib.SimpleActionClient(RobotUR.joint_controller,
+        #                                                             FollowJointTrajectoryAction)
         self.current_pose = None
         self.initial_pose = initial_pose  # Define an initial position
         rospy.Subscriber("tf", TFMessage, self._update_current_pose)
@@ -179,6 +193,86 @@ class RobotUR(object):
             except rospy.ServiceException:
                 rospy.loginfo("Service call failed ")
         return False
+
+    def _execute_trajectory_joint(self, goal):
+
+        self.trajectory_client_joint.wait_for_server()
+        self.trajectory_client_joint.send_goal(goal)
+        self.trajectory_client_joint.wait_for_result()
+        result = self.trajectory_client_joint.get_result()
+        rospy.loginfo("Trajectory execution finished in state {}".format(result.error_code))
+
+    def convert_deg_to_rad(self, tab):
+        res = []
+        for i in tab:
+            res.append(i * pi / 180)
+        return res
+
+    # def go_to_joint_state(self, point, duration=1):
+    #     print(point)
+    #     # point.time_from_start = rospy.Duration(duration)
+    #     goal = FollowJointTrajectoryGoal()
+    #     goal.trajectory.points.append(point)
+    #     self._execute_trajectory_joint(goal)
+
+    def switch_controler_robot(self, target):
+        self._switch_controller(target)
+
+    # def activate_controller_joint(self):
+        # self._switch_controller(self, "pos_joint_traj_controller")
+
+    #     switch_controller = rospy.ServiceProxy('/controller_manager/switch_controller', SwitchController)
+    #     controller_to_start = 'pos_joint_traj_controller'
+    #     controllers_to_stop = []
+    #     try:
+    #         response = switch_controller([controller_to_start], controllers_to_stop, 2, True, 1.0)
+    #         if response.ok:
+    #             rospy.loginfo("Controller activation successful")
+    #         # else:
+    #         #     rospy.logerr("Controller activation failed: %s", response.error)
+    #     except rospy.ServiceException as e:
+    #         rospy.logerr("Service call failed: %s", e)
+    #
+    #     # rospy.init_node('send_joint_trajectory_example', anonymous=True)
+
+    def send_joint_trajectory(self, position):
+
+        # Create a SimpleActionClient for the FollowJointTrajectoryAction
+        action_client = SimpleActionClient("/pos_joint_traj_controller/follow_joint_trajectory",
+                                           FollowJointTrajectoryAction)
+        action_client.wait_for_server()
+
+        # Define the joint names for your robot (modify as per your robot's configuration)
+        joint_names = ["shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint",
+                       "wrist_3_joint"]
+
+        # Create a JointTrajectory message
+        joint_trajectory = JointTrajectory()
+        joint_trajectory.joint_names = joint_names
+
+        # Define joint positions and time duration for each point in the trajectory
+        positions = [
+            position,  # Joint positions for the first point
+            # Add more points as needed
+        ]
+        print(positions)
+
+        time_from_start = [rospy.Duration(5.0), rospy.Duration(5.0)]  # Adjust timing as needed
+
+        for i in range(len(positions)):
+            trajectory_point = JointTrajectoryPoint()
+            trajectory_point.positions = positions[i]
+            trajectory_point.time_from_start = time_from_start[i]
+            joint_trajectory.points.append(trajectory_point)
+
+        # Create a FollowJointTrajectoryGoal message and set the joint trajectory
+        action_goal = FollowJointTrajectoryGoal(trajectory=joint_trajectory)
+
+        # Send the joint trajectory to the robot controller
+        action_client.send_goal(action_goal)
+
+        # Wait for the action to complete (you can also add error handling)
+        action_client.wait_for_result()
 
 
 #
