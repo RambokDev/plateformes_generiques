@@ -61,8 +61,6 @@ class RobotUR(object):
     tool_horizontal_pose = geometry_msgs.Quaternion(0.5, 0.5, 0.5,
                                                     0.5)  # Pose with the ArUco code up and the tool in horizontal position
     cartesian_controller = "pose_based_cartesian_traj_controller/follow_cartesian_trajectory"
-
-    # joint_controller = "pose_based_joint_traj_controller/follow_joint_trajectory"
     # Vector3(-0.731, 0.356, -0.042)
     def __init__(self, initial_pose=geometry_msgs.Pose(geometry_msgs.Vector3(-0.731, 0.356, 0.357), tool_down_pose)):
         super(RobotUR, self).__init__()
@@ -76,12 +74,9 @@ class RobotUR(object):
             sys.exit(-1)
         if not self._search_for_controller("pose_based_cartesian_traj_controller"):
             self._switch_controller("pose_based_cartesian_traj_controller")
-        # make sure the correct controller is loaded and activated
+
         self.trajectory_client = actionlib.SimpleActionClient(RobotUR.cartesian_controller,
                                                               FollowCartesianTrajectoryAction)
-        #
-        # self.trajectory_client_joint = actionlib.SimpleActionClient(RobotUR.joint_controller,
-        #                                                             FollowJointTrajectoryAction)
         self.current_pose = None
         self.initial_pose = initial_pose  # Define an initial position
         rospy.Subscriber("tf", TFMessage, self._update_current_pose)
@@ -208,12 +203,6 @@ class RobotUR(object):
             res.append(i * pi / 180)
         return res
 
-    # def go_to_joint_state(self, point, duration=1):
-    #     print(point)
-    #     # point.time_from_start = rospy.Duration(duration)
-    #     goal = FollowJointTrajectoryGoal()
-    #     goal.trajectory.points.append(point)
-    #     self._execute_trajectory_joint(goal)
 
     def switch_controler_robot(self, target):
         self._switch_controller(target)
