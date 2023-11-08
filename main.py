@@ -16,6 +16,7 @@ import geometry_msgs.msg as geometry_msgs
 from ur.commands.ur_commands import RobotUR
 from sensor_loop import sensor_loop
 from ur.commands.robot_state import set_robot_state
+from ur.commands.robot_connexion import connexion_state
 
 x_coef = 1 - 0.0182
 x_offset = (-0.0658) / 10  # en cm
@@ -33,7 +34,7 @@ class Ui(QtWidgets.QMainWindow, ):
         self.imageDeBase = None
         uic.loadUi(f'{os.getcwd()}/ur/ihm_tests/ui/main.ui', self)
         rospy.init_node("test_robotUR")
-        self.myRobot = RobotUR()
+        self.myRobot = None
         self.PIN_CAM_DEVRACAGE = 5
         self.PIN_VENTURI_VIDE = 0
         self.PIN_CAM_ORIENTATION = 4
@@ -47,11 +48,34 @@ class Ui(QtWidgets.QMainWindow, ):
         self.brakes.clicked.connect(lambda: self.robot_activation(True))
         self.quit_button.clicked.connect(QApplication.instance().quit)
         self.init.clicked.connect(lambda: self.myRobot.go_to_initial_position(10))
+        self.start_stop_connexion.clicked.connect(self.robot_connexion)
         self.showMaximized()
+        self.robot_connexion_state = False
         self.filename = None
         self.sensor_contact = None
         # self.slider_angle.valueChanged.connect(self.slider_state)
         self.show()
+
+    def robot_connexion(self):
+        if self.robot_connexion_state == False:
+            success, message = connexion_state(True)
+            if success:
+                self.robot_connexion_state = True
+                self.state_connexion_robot.setText("Connected")
+                self.state_connexion_robot.setStyleSheet("background-color: green;padding :15px;color:white")
+                time.sleep(5)
+                self.myRobot = RobotUR()
+            else:
+                self.pop_up_screen(message)
+        else:
+            success, message = connexion_state(False)
+            if success:
+                self.robot_connexion_state = False
+                self.state_connexion_robot.setText("Disconnected")
+                self.state_connexion_robot.setStyleSheet("background-color: red;padding :15px;color:white")
+
+            else:
+                self.pop_up_screen(message)
 
     def pop_up_screen(self, message):
 

@@ -56,8 +56,8 @@
            <widget class="QFrame" name="frame">
             <property name="maximumSize">
              <size>
-              <width>250</width>
-              <height>300</height>
+              <width>300</width>
+              <height>350</height>
              </size>
             </property>
             <property name="frameShape">
@@ -94,16 +94,52 @@
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_4">
                 <item>
-                 <widget class="QLabel" name="label_5">
-                  <property name="maximumSize">
-                   <size>
-                    <width>16777215</width>
-                    <height>50</height>
-                   </size>
+                 <widget class="QFrame" name="frame_5">
+                  <property name="frameShape">
+                   <enum>QFrame::NoFrame</enum>
                   </property>
-                  <property name="text">
-                   <string>Robot State : </string>
+                  <property name="frameShadow">
+                   <enum>QFrame::Raised</enum>
                   </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_6">
+                   <item>
+                    <widget class="QLabel" name="label_5">
+                     <property name="maximumSize">
+                      <size>
+                       <width>100</width>
+                       <height>50</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>Robot State : </string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item alignment="Qt::AlignHCenter">
+                    <widget class="QLabel" name="state_connexion_robot">
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>50</height>
+                      </size>
+                     </property>
+                     <property name="autoFillBackground">
+                      <bool>false</bool>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true">background-color: red;
+padding :15px;
+color:white</string>
+                     </property>
+                     <property name="text">
+                      <string>Disconnected</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
                  </widget>
                 </item>
                 <item>
@@ -112,6 +148,26 @@
                    <string>Releasing the brakes</string>
                   </property>
                  </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="start_stop_connexion">
+                  <property name="text">
+                   <string>Start / Stop Connexion</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="verticalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
                 </item>
                 <item>
                  <widget class="QPushButton" name="stop_robot">
