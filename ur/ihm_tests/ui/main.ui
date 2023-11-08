@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -287,11 +287,17 @@ color:white</string>
              </item>
              <item>
               <widget class="QSlider" name="slider_angle">
+               <property name="minimum">
+                <number>0</number>
+               </property>
                <property name="maximum">
-                <number>359</number>
+                <number>360</number>
                </property>
                <property name="singleStep">
                 <number>1</number>
+               </property>
+               <property name="sliderPosition">
+                <number>180</number>
                </property>
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>

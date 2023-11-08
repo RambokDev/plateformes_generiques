@@ -189,7 +189,7 @@ class Ui(QtWidgets.QMainWindow, ):
         """
         print("Current pose : {}".format(self.myRobot.get_current_pose()))
         current_pose_orientation = self.myRobot.get_current_pose().orientation
-        camera_command = [-0.883, 0.775, 0.214]
+        camera_command = [-0.883, 0.775, 0.300]
         current_quaternions = geometry_msgs.Quaternion(current_pose_orientation.x, current_pose_orientation.y,
                                                        current_pose_orientation.z, current_pose_orientation.w)
         self.myRobot.switch_controler_robot("pose_based_cartesian_traj_controller")
@@ -198,8 +198,9 @@ class Ui(QtWidgets.QMainWindow, ):
             current_quaternions
         ))
         self.set_io_interface(1, self.PIN_VENTURI_VIDE, self.OFF)
-
-        prepare_command_wrist = [-62.53, -28.76, 70.20, -222.05, -27.66, 180.70]
+        #
+        # prepare_command_wrist = [-62.53, -28.76, 70.20, -222.05, -27.66, 180.70] old
+        prepare_command_wrist = [-61.88, -35.19, 73.40, -219.29, -32.29, 180.70]
         self.move_wrist_angle(prepare_command_wrist)
         self.myRobot.switch_controler_robot("pose_based_cartesian_traj_controller")
         self.myRobot.go_to_initial_position(10)
