@@ -41,11 +41,12 @@ class Ui(QtWidgets.QMainWindow, ):
         self.set_io_interface = rospy.ServiceProxy('/ur_hardware_interface/set_io', SetIO)
         self.take_image.clicked.connect(self.show_image)
         self.take_image_angle.clicked.connect(self.show_image_angle)
-        self.angle_state.clicked.connect(self.move_wrist_angle)
+        self.angle_state.clicked.connect(self.action_slider_button_clicked)
         self.go_to_box.clicked.connect(self.go_to_box_traj)
         self.stop_robot.clicked.connect(lambda: self.robot_activation(False))
         self.brakes.clicked.connect(lambda: self.robot_activation(True))
         self.quit_button.clicked.connect(QApplication.instance().quit)
+        self.init.clicked.connect(lambda: self.myRobot.go_to_initial_position(10))
         self.showMaximized()
         self.filename = None
         self.sensor_contact = None
@@ -144,15 +145,18 @@ class Ui(QtWidgets.QMainWindow, ):
         qImg = QImage(image.data, width, height, step, QImage.Format_RGB888)
         self.image_angle.setPixmap(QPixmap.fromImage(qImg))
 
-    def move_wrist_angle(self):
-        """
-        This function is called when you have validated the angle with the slider, it send the wrist angle command
-        """
+    def action_slider_button_clicked(self):
         print("The slider angle is : ", self.slider_angle.value())
         wrist_angle = self.slider_angle.value()
         pose_camera = [-61.86, -48.79, 65.73, -198.09, -32.20, wrist_angle]
+        self.move_wrist_angle(pose_camera)
+
+    def move_wrist_angle(self, pose):
+        """
+        This function is called when you have validated the angle with the slider, it send the wrist angle command
+        """
         self.myRobot.switch_controler_robot("pos_joint_traj_controller")
-        self.myRobot.send_joint_trajectory(self.myRobot.convert_deg_to_rad(pose_camera))
+        self.myRobot.send_joint_trajectory(self.myRobot.convert_deg_to_rad(pose))
 
     def go_to_box_traj(self):
         """
@@ -170,6 +174,11 @@ class Ui(QtWidgets.QMainWindow, ):
             current_quaternions
         ))
         self.set_io_interface(1, self.PIN_VENTURI_VIDE, self.OFF)
+
+        prepare_command_wrist = [-62.53, -28.76, 70.20, -222.05, -27.66, 180.70]
+        self.move_wrist_angle(prepare_command_wrist)
+        self.myRobot.switch_controler_robot("pose_based_cartesian_traj_controller")
+        self.myRobot.go_to_initial_position(10)
 
     def compute_ratio(self, camera_type):
         """
