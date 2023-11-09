@@ -34,6 +34,7 @@ class Ui(QtWidgets.QMainWindow, ):
         self.imageDeBase = None
         uic.loadUi(f'{os.getcwd()}/ur/ihm_tests/ui/main.ui', self)
         rospy.init_node("test_robotUR")
+
         self.myRobot = None
         self.PIN_CAM_DEVRACAGE = 5
         self.PIN_VENTURI_VIDE = 0
@@ -200,7 +201,7 @@ class Ui(QtWidgets.QMainWindow, ):
         self.set_io_interface(1, self.PIN_VENTURI_VIDE, self.OFF)
         #
         # prepare_command_wrist = [-62.53, -28.76, 70.20, -222.05, -27.66, 180.70] old
-        prepare_command_wrist = [-61.88, -35.19, 73.40, -219.29, -32.29, 180.70]
+        prepare_command_wrist = [-61.88, -35.19, 73.40, -219.29, -32.29, 190]
         self.move_wrist_angle(prepare_command_wrist)
         self.myRobot.switch_controler_robot("pose_based_cartesian_traj_controller")
         self.myRobot.go_to_initial_position(10)
@@ -254,6 +255,7 @@ class Ui(QtWidgets.QMainWindow, ):
         """
         self.sensor_contact = sensor_loop()
         self.myRobot.go_to_initial_position(5)
+        # self.go_to_camera()
         self.myRobot.go_to_pose(geometry_msgs.Pose(
             geometry_msgs.Vector3(robot_command[0], robot_command[1], robot_command[2]),
             RobotUR.tool_down_pose

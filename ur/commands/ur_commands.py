@@ -56,8 +56,10 @@ CONFLICTING_CONTROLLERS = ["joint_group_vel_controller", "twist_controller"]
 
 class RobotUR(object):
     tool_horizontal_pose_camera = geometry_msgs.Quaternion(0.5, -0.5, -0.5, 0.5)
+    # tool_horizontal_pose_camera = geometry_msgs.Quaternion(0.11898204965893977, -0.6505392050312628, -0.11898204965893977, 0.7405979249465989)
     # tool_horizontal_pose_camera = geometry_msgs.Quaternion(-0.7, -0.027, -0.7, -0.024)
-    tool_down_pose = geometry_msgs.Quaternion(1., 0., 0., 0.)  # The tool is down, ready to grasp an object
+    # tool_down_pose = geometry_msgs.Quaternion(1., 0., 0., 0.)  # The tool is down, ready to grasp an object
+    tool_down_pose = geometry_msgs.Quaternion(0.9999996829318346, 0.0, 0.0, 0.0007963267107332633)  # The tool is down, ready to grasp an object
     tool_horizontal_pose = geometry_msgs.Quaternion(0.5, 0.5, 0.5,
                                                     0.5)  # Pose with the ArUco code up and the tool in horizontal position
     cartesian_controller = "pose_based_cartesian_traj_controller/follow_cartesian_trajectory"
@@ -82,6 +84,7 @@ class RobotUR(object):
         rospy.Subscriber("tf", TFMessage, self._update_current_pose)
 
     def go_to_initial_position(self, duration=2):
+        # self.go_to_pose(self.initial_pose, duration)
         self.go_to_pose(self.initial_pose, duration)
 
     def go_to_xyz_position(self, x, y, z, duration=2, orientation=None):
@@ -141,7 +144,10 @@ class RobotUR(object):
     def _go_to_this_point(self, point, duration=1):
         point.time_from_start = rospy.Duration(duration)
         goal = FollowCartesianTrajectoryGoal()
+        goal.trajectory.header.frame_id = "base"
         goal.trajectory.points.append(point)
+        print(goal)
+
         self._execute_trajectory(goal)
 
     def _execute_trajectory(self, goal):
