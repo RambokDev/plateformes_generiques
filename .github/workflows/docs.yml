@@ -32,6 +32,7 @@ jobs:
           python -m pip install sphinx-rtd-theme
 
       - name: make the sphinx docs
+        working-directory: .
         run: |
           make -C docs clean
           make -C docs html
