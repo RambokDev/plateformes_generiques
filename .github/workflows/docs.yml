@@ -37,8 +37,9 @@ jobs:
 
       - name: make the sphinx docs
         run: |
-          make -C docs clean
-          make -C docs html
+          cd docs/
+          make clean
+          make html
 
       - name: Init new repo in dist folder and commit
         run: |
