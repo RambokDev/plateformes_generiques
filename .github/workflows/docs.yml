@@ -33,6 +33,7 @@ jobs:
 
       - name: make the sphinx docs
         run: |
+          ls
           make -C docs clean
           make -C docs html
 
