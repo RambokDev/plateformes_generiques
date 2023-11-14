@@ -28,6 +28,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          echo ${{ secrets.GITHUB_TOKEN }}
           python -m pip install -U sphinx
           python -m pip install sphinx-rtd-theme
 
@@ -37,9 +38,8 @@ jobs:
 
       - name: make the sphinx docs
         run: |
-          cd docs/
-          make clean
-          make html
+          make -C docs clean
+          make -C docs html
 
       - name: Init new repo in dist folder and commit
         run: |
