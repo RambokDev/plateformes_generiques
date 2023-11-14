@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ur.commands.ur_commands &mdash; plateformes_generiques 1.0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=af2ce170"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            plateformes_generiques
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ur.html">ur package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">plateformes_generiques</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ur.commands.ur_commands</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ur.commands.ur_commands</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/python3</span>
+
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">pi</span>
+
+<span class="kn">import</span> <span class="nn">rospy</span>
+<span class="kn">import</span> <span class="nn">actionlib</span>
+<span class="kn">from</span> <span class="nn">rosservice</span> <span class="kn">import</span> <span class="n">rosservice_find</span>
+<span class="kn">from</span> <span class="nn">controller_manager_msgs.srv</span> <span class="kn">import</span> <span class="n">SwitchControllerRequest</span><span class="p">,</span> <span class="n">SwitchController</span><span class="p">,</span> <span class="n">ListControllers</span>
+<span class="kn">from</span> <span class="nn">controller_manager_msgs.srv</span> <span class="kn">import</span> <span class="n">LoadControllerRequest</span><span class="p">,</span> <span class="n">LoadController</span>
+<span class="kn">import</span> <span class="nn">geometry_msgs.msg</span> <span class="k">as</span> <span class="nn">geometry_msgs</span>
+<span class="kn">from</span> <span class="nn">cartesian_control_msgs.msg</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">FollowCartesianTrajectoryAction</span><span class="p">,</span>
+    <span class="n">FollowCartesianTrajectoryGoal</span><span class="p">,</span>
+    <span class="n">CartesianTrajectoryPoint</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">trajectory_msgs.msg</span> <span class="kn">import</span> <span class="n">JointTrajectory</span><span class="p">,</span> <span class="n">JointTrajectoryPoint</span>
+<span class="kn">from</span> <span class="nn">control_msgs.msg</span> <span class="kn">import</span> <span class="n">FollowJointTrajectoryAction</span><span class="p">,</span> <span class="n">FollowJointTrajectoryGoal</span>
+<span class="kn">from</span> <span class="nn">actionlib</span> <span class="kn">import</span> <span class="n">SimpleActionClient</span>
+
+<span class="c1"># from control_msgs.msg import FollowJointTrajectoryAction</span>
+<span class="c1"># from control_msgs.msg import FollowJointTrajectoryGoal</span>
+
+<span class="kn">from</span> <span class="nn">tf2_msgs.msg</span> <span class="kn">import</span> <span class="n">TFMessage</span>
+
+<span class="c1"># All of those controllers can be used to execute joint-based trajectories.</span>
+<span class="c1"># The scaled versions should be preferred over the non-scaled versions.</span>
+<span class="n">JOINT_TRAJECTORY_CONTROLLERS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;scaled_pos_joint_traj_controller&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;scaled_vel_joint_traj_controller&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;pos_joint_traj_controller&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;vel_joint_traj_controller&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;forward_joint_traj_controller&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1"># All of those controllers can be used to execute Cartesian trajectories.</span>
+<span class="c1"># The scaled versions should be preferred over the non-scaled versions.</span>
+<span class="n">CARTESIAN_TRAJECTORY_CONTROLLERS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;pose_based_cartesian_traj_controller&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;joint_based_cartesian_traj_controller&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;forward_cartesian_traj_controller&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1"># We&#39;ll have to make sure that none of these controllers are running, as they will</span>
+<span class="c1"># be conflicting with the joint trajectory controllers</span>
+<span class="n">CONFLICTING_CONTROLLERS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;joint_group_vel_controller&quot;</span><span class="p">,</span> <span class="s2">&quot;twist_controller&quot;</span><span class="p">]</span>
+
+
+<span class="c1"># Use this class to drive a Universal Robot with ROS</span>
+<span class="c1"># First, run the communication between the robot and ROS :</span>
+<span class="c1"># roslaunch raiv_libraries ur3_bringup_cartesian.launch robot_ip:=10.31.56.102 kinematics_config:=${HOME}/Calibration/ur3_calibration.yaml</span>
+<span class="c1"># roslaunch raiv_libraries ur10e_bringup_cartesian.launch robot_ip:=169.254.38.55 kinematics_config:=${HOME}/Calibration/ur10e_calibration.yaml</span>
+<span class="c1"># Then, run this node :</span>
+<span class="c1"># rosrun raiv_libraries robotUR.py</span>
+
+<div class="viewcode-block" id="RobotUR"><a class="viewcode-back" href="../../../ur.commands.html#ur.commands.ur_commands.RobotUR">[docs]</a><span class="k">class</span> <span class="nc">RobotUR</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">tool_horizontal_pose_camera</span> <span class="o">=</span> <span class="n">geometry_msgs</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+    <span class="c1"># tool_horizontal_pose_camera = geometry_msgs.Quaternion(0.11898204965893977, -0.6505392050312628, -0.11898204965893977, 0.7405979249465989)</span>
+    <span class="c1"># tool_horizontal_pose_camera = geometry_msgs.Quaternion(-0.7, -0.027, -0.7, -0.024)</span>
+    <span class="c1"># tool_down_pose = geometry_msgs.Quaternion(1., 0., 0., 0.)  # The tool is down, ready to grasp an object</span>
+    <span class="n">tool_down_pose</span> <span class="o">=</span> <span class="n">geometry_msgs</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">(</span><span class="mf">0.9999996829318346</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0007963267107332633</span><span class="p">)</span>  <span class="c1"># The tool is down, ready to grasp an object</span>
+    <span class="n">tool_horizontal_pose</span> <span class="o">=</span> <span class="n">geometry_msgs</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>
+                                                    <span class="mf">0.5</span><span class="p">)</span>  <span class="c1"># Pose with the ArUco code up and the tool in horizontal position</span>
+    <span class="n">cartesian_controller</span> <span class="o">=</span> <span class="s2">&quot;pose_based_cartesian_traj_controller/follow_cartesian_trajectory&quot;</span>
+    <span class="c1"># Vector3(-0.731, 0.356, -0.042)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_pose</span><span class="o">=</span><span class="n">geometry_msgs</span><span class="o">.</span><span class="n">Pose</span><span class="p">(</span><span class="n">geometry_msgs</span><span class="o">.</span><span class="n">Vector3</span><span class="p">(</span><span class="o">-</span><span class="mf">0.731</span><span class="p">,</span> <span class="mf">0.356</span><span class="p">,</span> <span class="mf">0.357</span><span class="p">),</span> <span class="n">tool_down_pose</span><span class="p">)):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">RobotUR</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">timeout</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">Duration</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">switch_srv</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">ServiceProxy</span><span class="p">(</span><span class="s2">&quot;/controller_manager/switch_controller&quot;</span><span class="p">,</span> <span class="n">SwitchController</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_srv</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">ServiceProxy</span><span class="p">(</span><span class="s2">&quot;/controller_manager/load_controller&quot;</span><span class="p">,</span> <span class="n">LoadController</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">switch_srv</span><span class="o">.</span><span class="n">wait_for_service</span><span class="p">(</span><span class="n">timeout</span><span class="o">.</span><span class="n">to_sec</span><span class="p">())</span>
+        <span class="k">except</span> <span class="n">rospy</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ROSException</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">rospy</span><span class="o">.</span><span class="n">logerr</span><span class="p">(</span><span class="s2">&quot;Could not reach controller switch service. Msg: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">err</span><span class="p">))</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_search_for_controller</span><span class="p">(</span><span class="s2">&quot;pose_based_cartesian_traj_controller&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_switch_controller</span><span class="p">(</span><span class="s2">&quot;pose_based_cartesian_traj_controller&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_client</span> <span class="o">=</span> <span class="n">actionlib</span><span class="o">.</span><span class="n">SimpleActionClient</span><span class="p">(</span><span class="n">RobotUR</span><span class="o">.</span><span class="n">cartesian_controller</span><span class="p">,</span>
+                                                              <span class="n">FollowCartesianTrajectoryAction</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_pose</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_pose</span> <span class="o">=</span> <span class="n">initial_pose</span>  <span class="c1"># Define an initial position</span>
+        <span class="n">rospy</span><span class="o">.</span><span class="n">Subscriber</span><span class="p">(</span><span class="s2">&quot;tf&quot;</span><span class="p">,</span> <span class="n">TFMessage</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_current_pose</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RobotUR.go_to_initial_position"><a class="viewcode-back" href="../../../ur.commands.html#ur.commands.ur_commands.RobotUR.go_to_initial_position">[docs]</a>    <span class="k">def</span> <span class="nf">go_to_initial_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="c1"># self.go_to_pose(self.initial_pose, duration)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_pose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_pose</span><span class="p">,</span> <span class="n">duration</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RobotUR.go_to_xyz_position"><a class="viewcode-back" href="../../../ur.commands.html#ur.commands.ur_commands.RobotUR.go_to_xyz_position">[docs]</a>    <span class="k">def</span> <span class="nf">go_to_xyz_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Go to the x,y,z position with an orientation Quaternion (default : tool frame pointing down) &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">orientation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">orientation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_pose</span><span class="o">.</span><span class="n">orientation</span>
+        <span class="n">goal_pose</span> <span class="o">=</span> <span class="n">geometry_msgs</span><span class="o">.</span><span class="n">Pose</span><span class="p">(</span><span class="n">geometry_msgs</span><span class="o">.</span><span class="n">Vector3</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">),</span> <span class="n">orientation</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_pose</span><span class="p">(</span><span class="n">goal_pose</span><span class="p">,</span> <span class="n">duration</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RobotUR.go_to_pose"><a class="viewcode-back" href="../../../ur.commands.html#ur.commands.ur_commands.RobotUR.go_to_pose">[docs]</a>    <span class="k">def</span> <span class="nf">go_to_pose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pose</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Send the robot to this cartesian pose</span>
+<span class="sd">        pose : geometry_msgs.Pose (position : x,y,z and orientation : quaternion)</span>
+<span class="sd">        duration : # of seconds for the trajectory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">point</span> <span class="o">=</span> <span class="n">CartesianTrajectoryPoint</span><span class="p">()</span>
+        <span class="n">point</span><span class="o">.</span><span class="n">pose</span> <span class="o">=</span> <span class="n">pose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_go_to_this_point</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">duration</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RobotUR.go_to_position"><a class="viewcode-back" href="../../../ur.commands.html#ur.commands.ur_commands.RobotUR.go_to_position">[docs]</a>    <span class="k">def</span> <span class="nf">go_to_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Send the robot to this cartesian position</span>
+<span class="sd">        pose : geometry_msgs.Vector3 (position : x,y,z)</span>
+<span class="sd">        duration : # of seconds for the trajectory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">point</span> <span class="o">=</span> <span class="n">CartesianTrajectoryPoint</span><span class="p">()</span>
+        <span class="n">point</span><span class="o">.</span><span class="n">pose</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">position</span>
+        <span class="n">point</span><span class="o">.</span><span class="n">pose</span><span class="o">.</span><span class="n">orientation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_pose</span><span class="o">.</span><span class="n">orientation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_go_to_this_point</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">duration</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RobotUR.execute_cartesian_trajectory"><a class="viewcode-back" href="../../../ur.commands.html#ur.commands.ur_commands.RobotUR.execute_cartesian_trajectory">[docs]</a>    <span class="k">def</span> <span class="nf">execute_cartesian_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pose_list</span><span class="p">,</span> <span class="n">duration_list</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Creates a Cartesian trajectory and sends it using the selected action server &quot;&quot;&quot;</span>
+        <span class="n">goal</span> <span class="o">=</span> <span class="n">FollowCartesianTrajectoryGoal</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pose</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pose_list</span><span class="p">):</span>
+            <span class="n">point</span> <span class="o">=</span> <span class="n">CartesianTrajectoryPoint</span><span class="p">()</span>
+            <span class="n">point</span><span class="o">.</span><span class="n">pose</span> <span class="o">=</span> <span class="n">pose</span>
+            <span class="n">point</span><span class="o">.</span><span class="n">time_from_start</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">Duration</span><span class="p">(</span><span class="n">duration_list</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">goal</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute_trajectory</span><span class="p">(</span><span class="n">goal</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RobotUR.relative_move"><a class="viewcode-back" href="../../../ur.commands.html#ur.commands.ur_commands.RobotUR.relative_move">[docs]</a>    <span class="k">def</span> <span class="nf">relative_move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Perform a relative move in all x, y or z coordinates. &quot;&quot;&quot;</span>
+        <span class="n">new_pose</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_pose</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">orientation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_pose</span><span class="o">.</span><span class="n">orientation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_pose</span><span class="o">.</span><span class="n">orientation</span>
+        <span class="n">new_pose</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">x</span> <span class="o">+=</span> <span class="n">x</span>
+        <span class="n">new_pose</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">y</span> <span class="o">+=</span> <span class="n">y</span>
+        <span class="n">new_pose</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">z</span> <span class="o">+=</span> <span class="n">z</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">go_to_pose</span><span class="p">(</span><span class="n">new_pose</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RobotUR.get_current_pose"><a class="viewcode-back" href="../../../ur.commands.html#ur.commands.ur_commands.RobotUR.get_current_pose">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_pose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return the current pose (translation + quaternion), type = geometry_msgs.Pose &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_pose</span></div>
+
+    <span class="c1">####################### Privates methods #######################</span>
+
+    <span class="k">def</span> <span class="nf">_go_to_this_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">point</span><span class="o">.</span><span class="n">time_from_start</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">Duration</span><span class="p">(</span><span class="n">duration</span><span class="p">)</span>
+        <span class="n">goal</span> <span class="o">=</span> <span class="n">FollowCartesianTrajectoryGoal</span><span class="p">()</span>
+        <span class="n">goal</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">frame_id</span> <span class="o">=</span> <span class="s2">&quot;base&quot;</span>
+        <span class="n">goal</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">goal</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute_trajectory</span><span class="p">(</span><span class="n">goal</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_execute_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">goal</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_client</span><span class="o">.</span><span class="n">wait_for_server</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_client</span><span class="o">.</span><span class="n">send_goal</span><span class="p">(</span><span class="n">goal</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_client</span><span class="o">.</span><span class="n">wait_for_result</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_client</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span>
+        <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s2">&quot;Trajectory execution finished in state </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">error_code</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_update_current_pose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">transforms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">transform</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_pose</span> <span class="o">=</span> <span class="n">geometry_msgs</span><span class="o">.</span><span class="n">Pose</span><span class="p">(</span>
+            <span class="n">geometry_msgs</span><span class="o">.</span><span class="n">Vector3</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">translation</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">translation</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">translation</span><span class="o">.</span><span class="n">z</span><span class="p">),</span>
+            <span class="n">geometry_msgs</span><span class="o">.</span><span class="n">Quaternion</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">rotation</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">rotation</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">rotation</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">rotation</span><span class="o">.</span><span class="n">w</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_switch_controller</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_controller</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Activates the desired controller and stops all others from the predefined list above&quot;&quot;&quot;</span>
+        <span class="n">other_controllers</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">JOINT_TRAJECTORY_CONTROLLERS</span>
+                <span class="o">+</span> <span class="n">CARTESIAN_TRAJECTORY_CONTROLLERS</span>
+                <span class="o">+</span> <span class="n">CONFLICTING_CONTROLLERS</span>
+        <span class="p">)</span>
+        <span class="n">other_controllers</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">target_controller</span><span class="p">)</span>
+        <span class="n">srv</span> <span class="o">=</span> <span class="n">LoadControllerRequest</span><span class="p">()</span>
+        <span class="n">srv</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">target_controller</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_srv</span><span class="p">(</span><span class="n">srv</span><span class="p">)</span>
+        <span class="n">srv</span> <span class="o">=</span> <span class="n">SwitchControllerRequest</span><span class="p">()</span>
+        <span class="n">srv</span><span class="o">.</span><span class="n">stop_controllers</span> <span class="o">=</span> <span class="n">other_controllers</span>
+        <span class="n">srv</span><span class="o">.</span><span class="n">start_controllers</span> <span class="o">=</span> <span class="p">[</span><span class="n">target_controller</span><span class="p">]</span>
+        <span class="n">srv</span><span class="o">.</span><span class="n">strictness</span> <span class="o">=</span> <span class="n">SwitchControllerRequest</span><span class="o">.</span><span class="n">BEST_EFFORT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">switch_srv</span><span class="p">(</span><span class="n">srv</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_search_for_controller</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">controller_name</span><span class="p">):</span>
+        <span class="n">controller_managers</span> <span class="o">=</span> <span class="n">rosservice_find</span><span class="p">(</span><span class="s1">&#39;controller_manager_msgs/ListControllers&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">controller_managers</span><span class="p">:</span>
+            <span class="n">rospy</span><span class="o">.</span><span class="n">wait_for_service</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">list_controllers</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">ServiceProxy</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">ListControllers</span><span class="p">)</span>
+                <span class="n">controller_list</span> <span class="o">=</span> <span class="n">list_controllers</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">controller_list</span><span class="o">.</span><span class="n">controller</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">controller_name</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">except</span> <span class="n">rospy</span><span class="o">.</span><span class="n">ServiceException</span><span class="p">:</span>
+                <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s2">&quot;Service call failed &quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_execute_trajectory_joint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">goal</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_client_joint</span><span class="o">.</span><span class="n">wait_for_server</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_client_joint</span><span class="o">.</span><span class="n">send_goal</span><span class="p">(</span><span class="n">goal</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_client_joint</span><span class="o">.</span><span class="n">wait_for_result</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_client_joint</span><span class="o">.</span><span class="n">get_result</span><span class="p">()</span>
+        <span class="n">rospy</span><span class="o">.</span><span class="n">loginfo</span><span class="p">(</span><span class="s2">&quot;Trajectory execution finished in state </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">error_code</span><span class="p">))</span>
+
+<div class="viewcode-block" id="RobotUR.convert_deg_to_rad"><a class="viewcode-back" href="../../../ur.commands.html#ur.commands.ur_commands.RobotUR.convert_deg_to_rad">[docs]</a>    <span class="k">def</span> <span class="nf">convert_deg_to_rad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tab</span><span class="p">:</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="RobotUR.switch_controler_robot"><a class="viewcode-back" href="../../../ur.commands.html#ur.commands.ur_commands.RobotUR.switch_controler_robot">[docs]</a>    <span class="k">def</span> <span class="nf">switch_controler_robot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_switch_controller</span><span class="p">(</span><span class="n">target</span><span class="p">)</span></div>
+
+    <span class="c1"># def activate_controller_joint(self):</span>
+        <span class="c1"># self._switch_controller(self, &quot;pos_joint_traj_controller&quot;)</span>
+
+    <span class="c1">#     switch_controller = rospy.ServiceProxy(&#39;/controller_manager/switch_controller&#39;, SwitchController)</span>
+    <span class="c1">#     controller_to_start = &#39;pos_joint_traj_controller&#39;</span>
+    <span class="c1">#     controllers_to_stop = []</span>
+    <span class="c1">#     try:</span>
+    <span class="c1">#         response = switch_controller([controller_to_start], controllers_to_stop, 2, True, 1.0)</span>
+    <span class="c1">#         if response.ok:</span>
+    <span class="c1">#             rospy.loginfo(&quot;Controller activation successful&quot;)</span>
+    <span class="c1">#         # else:</span>
+    <span class="c1">#         #     rospy.logerr(&quot;Controller activation failed: %s&quot;, response.error)</span>
+    <span class="c1">#     except rospy.ServiceException as e:</span>
+    <span class="c1">#         rospy.logerr(&quot;Service call failed: %s&quot;, e)</span>
+    <span class="c1">#</span>
+    <span class="c1">#     # rospy.init_node(&#39;send_joint_trajectory_example&#39;, anonymous=True)</span>
+
+<div class="viewcode-block" id="RobotUR.send_joint_trajectory"><a class="viewcode-back" href="../../../ur.commands.html#ur.commands.ur_commands.RobotUR.send_joint_trajectory">[docs]</a>    <span class="k">def</span> <span class="nf">send_joint_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+
+        <span class="c1"># Create a SimpleActionClient for the FollowJointTrajectoryAction</span>
+        <span class="n">action_client</span> <span class="o">=</span> <span class="n">SimpleActionClient</span><span class="p">(</span><span class="s2">&quot;/pos_joint_traj_controller/follow_joint_trajectory&quot;</span><span class="p">,</span>
+                                           <span class="n">FollowJointTrajectoryAction</span><span class="p">)</span>
+        <span class="n">action_client</span><span class="o">.</span><span class="n">wait_for_server</span><span class="p">()</span>
+
+        <span class="c1"># Define the joint names for your robot (modify as per your robot&#39;s configuration)</span>
+        <span class="n">joint_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;shoulder_pan_joint&quot;</span><span class="p">,</span> <span class="s2">&quot;shoulder_lift_joint&quot;</span><span class="p">,</span> <span class="s2">&quot;elbow_joint&quot;</span><span class="p">,</span> <span class="s2">&quot;wrist_1_joint&quot;</span><span class="p">,</span> <span class="s2">&quot;wrist_2_joint&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;wrist_3_joint&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Create a JointTrajectory message</span>
+        <span class="n">joint_trajectory</span> <span class="o">=</span> <span class="n">JointTrajectory</span><span class="p">()</span>
+        <span class="n">joint_trajectory</span><span class="o">.</span><span class="n">joint_names</span> <span class="o">=</span> <span class="n">joint_names</span>
+
+        <span class="c1"># Define joint positions and time duration for each point in the trajectory</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">position</span><span class="p">,</span>  <span class="c1"># Joint positions for the first point</span>
+            <span class="c1"># Add more points as needed</span>
+        <span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+
+        <span class="n">time_from_start</span> <span class="o">=</span> <span class="p">[</span><span class="n">rospy</span><span class="o">.</span><span class="n">Duration</span><span class="p">(</span><span class="mf">5.0</span><span class="p">),</span> <span class="n">rospy</span><span class="o">.</span><span class="n">Duration</span><span class="p">(</span><span class="mf">5.0</span><span class="p">)]</span>  <span class="c1"># Adjust timing as needed</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">)):</span>
+            <span class="n">trajectory_point</span> <span class="o">=</span> <span class="n">JointTrajectoryPoint</span><span class="p">()</span>
+            <span class="n">trajectory_point</span><span class="o">.</span><span class="n">positions</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">trajectory_point</span><span class="o">.</span><span class="n">time_from_start</span> <span class="o">=</span> <span class="n">time_from_start</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">joint_trajectory</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trajectory_point</span><span class="p">)</span>
+
+        <span class="c1"># Create a FollowJointTrajectoryGoal message and set the joint trajectory</span>
+        <span class="n">action_goal</span> <span class="o">=</span> <span class="n">FollowJointTrajectoryGoal</span><span class="p">(</span><span class="n">trajectory</span><span class="o">=</span><span class="n">joint_trajectory</span><span class="p">)</span>
+
+        <span class="c1"># Send the joint trajectory to the robot controller</span>
+        <span class="n">action_client</span><span class="o">.</span><span class="n">send_goal</span><span class="p">(</span><span class="n">action_goal</span><span class="p">)</span>
+
+        <span class="c1"># Wait for the action to complete (you can also add error handling)</span>
+        <span class="n">action_client</span><span class="o">.</span><span class="n">wait_for_result</span><span class="p">()</span></div></div>
+
+
+<span class="c1">#</span>
+<span class="c1">#  Test the different RobotUR methods</span>
+<span class="c1">#</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">time</span>
+
+    <span class="n">rospy</span><span class="o">.</span><span class="n">init_node</span><span class="p">(</span><span class="s2">&quot;test_robotUR&quot;</span><span class="p">)</span>
+    <span class="n">myRobot</span> <span class="o">=</span> <span class="n">RobotUR</span><span class="p">()</span>
+    <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;============ Press `Enter` to go to initial position ...&quot;</span><span class="p">)</span>
+    <span class="n">myRobot</span><span class="o">.</span><span class="n">go_to_initial_position</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="c1"># # this okey for center point</span>
+    <span class="c1"># input(&quot;============ Press `Enter` to go to test charles...&quot;)</span>
+    <span class="c1"># myRobot.go_to_pose(geometry_msgs.Pose(</span>
+    <span class="c1">#     geometry_msgs.Vector3(-0.6179846576602167, 0.000418113766730972, -0.05194822471506214), RobotUR.tool_down_pose</span>
+    <span class="c1"># ))</span>
+    <span class="c1"># input(&quot;============ Press `Enter` to execute a relative_move ...&quot;)</span>
+    <span class="c1"># myRobot.relative_move(0.009, 0.006, -0.40)</span>
+
+    <span class="c1"># this okey for right top point</span>
+    <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;============ Press `Enter` to go to test charles...&quot;</span><span class="p">)</span>
+    <span class="n">myRobot</span><span class="o">.</span><span class="n">go_to_pose</span><span class="p">(</span><span class="n">geometry_msgs</span><span class="o">.</span><span class="n">Pose</span><span class="p">(</span>
+        <span class="n">geometry_msgs</span><span class="o">.</span><span class="n">Vector3</span><span class="p">(</span><span class="o">-</span><span class="mf">0.679958428096283</span><span class="p">,</span> <span class="mf">0.10701808485686919</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.05158763753667969</span><span class="p">),</span> <span class="n">RobotUR</span><span class="o">.</span><span class="n">tool_down_pose</span>
+    <span class="p">))</span>
+    <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;============ Press `Enter` to execute a relative_move ...&quot;</span><span class="p">)</span>
+    <span class="n">myRobot</span><span class="o">.</span><span class="n">relative_move</span><span class="p">(</span><span class="o">-</span><span class="mf">0.01229</span><span class="p">,</span> <span class="mf">0.04629</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.40</span><span class="p">)</span>
+
+    <span class="c1"># input(&quot;============ Press `Enter` to go to test charles 2...&quot;)</span>
+    <span class="c1"># myRobot.go_to_pose(geometry_msgs.Pose(</span>
+    <span class="c1">#     geometry_msgs.Vector3(0.009850757925073026, 0.006215707372015888, -0.4000413270592923), RobotUR.tool_down_pose</span>
+    <span class="c1"># ))</span>
+    <span class="c1">#</span>
+    <span class="c1">#</span>
+    <span class="c1"># input(&quot;============ Press `Enter` to go to test charles...&quot;)</span>
+    <span class="c1"># myRobot.go_to_pose(geometry_msgs.Pose(</span>
+    <span class="c1">#     geometry_msgs.Vector3(0.619, 0.000, -0.38), RobotUR.tool_down_pose</span>
+    <span class="c1"># ))</span>
+    <span class="c1">#</span>
+    <span class="c1"># input(&quot;============ 1 Press `Enter` to go to a x,y,z  position ...&quot;)</span>
+    <span class="c1"># myRobot.go_to_xyz_position(0.35, 0, 0.12)</span>
+    <span class="c1"># input(&quot;============ HORIZONTAL Press `Enter` to go to a x,y,z  position ...&quot;)</span>
+    <span class="c1"># myRobot.go_to_pose(geometry_msgs.Pose(</span>
+    <span class="c1">#     geometry_msgs.Vector3(0.442, -0.022, 0.125), RobotUR.tool_horizontal_pose</span>
+    <span class="c1"># ), 9)</span>
+    <span class="c1"># input(&quot;============ VERTICAL Press `Enter` to go to a x,y,z  position ...&quot;)</span>
+    <span class="c1"># myRobot.go_to_initial_position(10)</span>
+    <span class="c1">#</span>
+    <span class="c1"># input(&quot;============ Press `Enter` to go to 2 different posesche ...&quot;)</span>
+    <span class="c1"># myRobot.go_to_pose(geometry_msgs.Pose(</span>
+    <span class="c1">#     geometry_msgs.Vector3(0.275, 0, 0.3), RobotUR.tool_horizontal_pose</span>
+    <span class="c1"># ), 1)</span>
+    <span class="c1"># myRobot.go_to_pose(geometry_msgs.Pose(</span>
+    <span class="c1">#     geometry_msgs.Vector3(0.3, -0.13, 0.0238), RobotUR.tool_down_pose</span>
+    <span class="c1"># ))</span>
+    <span class="c1"># print(&quot;Current pose : {}&quot;.format(myRobot.get_current_pose()))</span>
+    <span class="c1"># input(&quot;============ Press `Enter` to execute a cartesian trajectory ...&quot;)</span>
+    <span class="c1"># pose_list = [</span>
+    <span class="c1">#     geometry_msgs.Pose(</span>
+    <span class="c1">#         geometry_msgs.Vector3(0.3, -0.13, 0.238), RobotUR.tool_down_pose</span>
+    <span class="c1">#     ),</span>
+    <span class="c1">#     geometry_msgs.Pose(</span>
+    <span class="c1">#         geometry_msgs.Vector3(0.4, -0.1, 0.2), RobotUR.tool_down_pose</span>
+    <span class="c1">#     ),</span>
+    <span class="c1">#     geometry_msgs.Pose(</span>
+    <span class="c1">#         geometry_msgs.Vector3(0.4, 0.3, 0.2), RobotUR.tool_down_pose</span>
+    <span class="c1">#     ),</span>
+    <span class="c1">#     geometry_msgs.Pose(</span>
+    <span class="c1">#         geometry_msgs.Vector3(0.3, 0.3, 0.2), RobotUR.tool_down_pose</span>
+    <span class="c1">#     ),</span>
+    <span class="c1">#     geometry_msgs.Pose(</span>
+    <span class="c1">#         geometry_msgs.Vector3(0.3, -0.13, 0.238), RobotUR.tool_down_pose</span>
+    <span class="c1">#     ),</span>
+    <span class="c1"># ]</span>
+    <span class="c1"># duration_list = [1.0, 3.0, 4.0, 5.0, 6.0]</span>
+    <span class="c1"># myRobot.execute_cartesian_trajectory(pose_list, duration_list)</span>
+    <span class="c1"># input(&quot;============ Press `Enter` to execute a relative_move ...&quot;)</span>
+    <span class="c1"># myRobot.relative_move(0.02, 0.04, 0.06)</span>
+    <span class="c1"># print(&quot;The end&quot;)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Charles Gauthereau.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
