@@ -32,7 +32,6 @@ jobs:
           python -m pip install sphinx-rtd-theme
 
       - name: make the sphinx docs
-        working-directory: .
         run: |
           make -C docs clean
           make -C docs html
@@ -51,7 +50,7 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: gh-pages
+          branch: documentations
           force: true
           directory: ./docs/build/html
 

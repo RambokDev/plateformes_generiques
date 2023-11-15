@@ -10,7 +10,7 @@ Welcome to plateformes_generiques's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   ur
+
 
 Indices and tables
 ==================

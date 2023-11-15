@@ -3,7 +3,7 @@ import time
 import cv2
 import numpy as np
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox
+from PyQt5.QtWidgets import QMessageBox
 import sys
 import rospy
 from PyQt5.QtGui import QPixmap, QImage
@@ -16,7 +16,7 @@ import geometry_msgs.msg as geometry_msgs
 from ur.commands.ur_commands import RobotUR
 from sensor_loop import sensor_loop
 from ur.commands.robot_state import set_robot_state
-from ur.commands.robot_connexion import connexion_state
+from robot.ur.commands.robot_connexion import connexion_state
 
 x_coef = 1 - 0.0182
 x_offset = (-0.0658) / 10  # en cm
